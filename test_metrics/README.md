@@ -53,3 +53,33 @@ python measure_ps.py --enhanced_dir /path/to/enhanced_images [--gt_dir /path/to/
 ## Notes
 - The NR script downloads pretrained models for NIQE and MUSIQ upon first run (via `pyiqa`).
 - Ensure your images are in common formats (png, jpg, jpeg, bmp).
+If you want to pre-download the model weights instead of downloading them at runtime, manually download and place them in the cache directory:
+
+**MUSIQ weight:**
+```bash
+# Download
+wget https://github.com/chaofengc/IQA-PyTorch/releases/download/v0.1-weights/musiq_koniq_ckpt-e95806b9.pth
+
+# Place in cache (Linux)
+mkdir -p ~/.cache/torch/hub/checkpoints/
+mv musiq_koniq_ckpt-e95806b9.pth ~/.cache/torch/hub/checkpoints/
+```
+
+**NIQE weight:**
+```bash
+wget https://huggingface.co/chaofengc/IQA-PyTorch-Weights/resolve/main/niqe_modelparameters.mat
+mkdir -p ~/.cache/torch/hub/pyiqa/
+mv niqe_modelparameters.mat ~/.cache/torch/hub/pyiqa/
+```
+
+**LPIPS weight (for measure_ps.py):**
+```bash
+wget https://huggingface.co/chaofengc/IQA-PyTorch-Weights/resolve/main/LPIPS_v0.1_alex-df73285e.pth
+mkdir -p ~/.cache/torch/hub/pyiqa/
+mv LPIPS_v0.1_alex-df73285e.pth ~/.cache/torch/hub/pyiqa/
+
+# Also need AlexNet backbone
+wget https://download.pytorch.org/models/alexnet-owt-7be5be79.pth
+mv alexnet-owt-7be5be79.pth ~/.cache/torch/hub/checkpoints/
+```
+
