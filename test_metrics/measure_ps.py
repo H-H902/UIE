@@ -1,4 +1,3 @@
-
 import argparse
 import os
 import cv2
@@ -6,6 +5,26 @@ import torch
 import pyiqa
 import glob
 import numpy as np
+# ===================== 新增辅助函数：忽略后缀找同名GT文件 =====================
+def find_gt_file(gt_dir, enh_basename):
+    """
+    根据增强图的文件名（带后缀），在GT目录找同名不同后缀的GT文件
+    :param gt_dir: GT目录路径
+    :param enh_basename: 增强图的文件名（如 w_r_4_.png）
+    :return: 匹配的GT文件路径，无匹配则返回None
+    """
+    # 提取增强图的「纯文件名」（去掉后缀）：w_r_4_.png → w_r_4_
+    fname_no_ext = os.path.splitext(enh_basename)[0]
+    # 定义GT图支持的后缀（覆盖常见格式）
+    valid_exts = ['.png', '.jpg', '.jpeg', '.bmp']
+    # 遍历所有可能的后缀，查找是否存在同名GT文件
+    for ext in valid_exts:
+        gt_candidate = os.path.join(gt_dir, f"{fname_no_ext}{ext}")
+        if os.path.exists(gt_candidate):
+            return gt_candidate
+    # 无匹配的GT文件
+    return None
+# ============================================================================
 
 def main():
     parser = argparse.ArgumentParser(description="Calculate Perceptual Score (PS)")
@@ -17,14 +36,6 @@ def main():
     print(f"Using device: {device}")
 
     # Metrics
-    # If GT is present, use LPIPS (standard Perceptual Score in FR)
-    # If GT is NOT present, use MUSIQ as a proxy for Perceptual Quality? 
-    # Or maybe the user implies 'PS' is a specific metric name in pyiqa?
-    # No, usually PS = Perceptual Score.
-    # We will compute LPIPS if GT exists.
-    # We will compute MUSIQ if GT does not exist (or both if user wants).
-    # Since the user said "PS is usable for both", likely they mean "The script calculates PS".
-    
     lpips_metric = None
     nr_metric = None
     
@@ -77,8 +88,13 @@ def main():
         val_fr = -1
         if lpips_metric and args.gt_dir:
             basename = os.path.basename(enh_path)
-            gt_path = os.path.join(args.gt_dir, basename)
-            if os.path.exists(gt_path):
+            # ===================== 关键修改：替换GT路径查找逻辑 =====================
+            # 原代码：gt_path = os.path.join(args.gt_dir, basename)
+            # 新代码：调用辅助函数找同名不同后缀的GT文件
+            gt_path = find_gt_file(args.gt_dir, basename)
+            # =====================================================================
+            
+            if gt_path and os.path.exists(gt_path):  # 检查是否找到有效GT文件
                 gt_img = cv2.imread(gt_path)
                 if gt_img is not None:
                     gt_img = cv2.resize(gt_img, (256, 256))
@@ -104,3 +120,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
