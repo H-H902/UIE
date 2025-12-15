@@ -1,0 +1,7 @@
+numpy<2.0
+opencv-python
+scikit-image
+torch
+torchvision
+kornia
+pyiqa
